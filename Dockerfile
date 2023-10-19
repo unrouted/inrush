@@ -12,11 +12,12 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 
 # Copy the source and build the application.
 COPY src src
+COPY templates templates
 RUN touch src/main.rs
 RUN cargo build --locked --frozen --offline --target x86_64-unknown-linux-musl --release
 
 # Copy the statically-linked binary into a scratch container.
 FROM scratch
-COPY --from=build /usr/src/operator/target/x86_64-unknown-linux-musl/release/operator .
+COPY --from=build /usr/src/operator/target/x86_64-unknown-linux-musl/release/inrush .
 USER 1000
-ENTRYPOINT ["./operator"]
+ENTRYPOINT ["./inrush"]

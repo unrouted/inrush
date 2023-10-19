@@ -29,6 +29,8 @@ use kube::{
     Client, Resource,
 };
 use resolv_conf;
+use std::error::Error;
+use std::fmt::Write;
 use std::{collections::BTreeMap, sync::Arc};
 use thiserror::Error as AnotherError;
 use tokio::time::Duration;
@@ -432,13 +434,13 @@ async fn main() -> Result<()> {
             match res {
                 Ok(o) => info!("reconciled {:?}", o),
                 Err(err) => {
-                    let msg = err.to_string();
-                    //let mut source = err.source();
-                    //while let Some(src) = source {
-                    //    writeln!(msg, ": {src}");
-                    //    source = src.source();
-                    //}
-                    warn!("reconcile failed: {}", msg);
+                    let mut msg = err.to_string();
+                    let mut source = err.source();
+                    while let Some(src) = source {
+                        writeln!(msg, ": {src}").unwrap();
+                        source = src.source();
+                    }
+                    error!("reconcile failed: {}", msg);
                 }
             }
         })

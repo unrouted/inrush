@@ -155,8 +155,6 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
         ..Default::default()
     };
 
-    println!("{:?}", config_map);
-
     let config_map_api = Api::<ConfigMap>::namespaced(client.clone(), namespace);
     config_map_api
         .patch(

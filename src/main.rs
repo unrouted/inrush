@@ -403,6 +403,7 @@ async fn main() -> Result<()> {
     let ingress = Api::<Ingress>::all(client.clone());
     let deployments = Api::<Deployment>::all(client.clone());
     let configmaps = Api::<ConfigMap>::all(client.clone());
+    let services = Api::<Service>::all(client.clone());
 
     // limit the controller to running a maximum of two concurrent reconciliations
     let config = Config::default()
@@ -425,6 +426,7 @@ async fn main() -> Result<()> {
         })
         .owns(deployments, watcher_config.clone())
         .owns(configmaps, watcher_config.clone())
+        .owns(services, watcher_config.clone())
         .with_config(config)
         .shutdown_on_signal()
         .run(

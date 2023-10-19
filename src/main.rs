@@ -275,6 +275,10 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 namespace: ingress.meta().namespace.clone(),
                 name: Some(svc_name.clone()),
                 owner_references: Some(vec![owner_reference.clone()]),
+                labels: Some(BTreeMap::from([(
+                    "inrush.unrouted.uk/ingress".to_string(),
+                    name.clone(),
+                )])),
                 ..Default::default()
             };
 
@@ -401,7 +405,11 @@ async fn main() -> Result<()> {
     let configmaps = Api::<ConfigMap>::all(client.clone());
 
     // limit the controller to running a maximum of two concurrent reconciliations
-    let config = Config::default().concurrency(2);
+    let config = Config::default()
+        .concurrency(2)
+        .debounce(Duration::from_secs(5));
+
+    let watcher_config = watcher::Config::default().labels("inrush.unrouted.uk/ingress");
 
     let (ingress_reader, ingress_writer) = store();
     let rf = reflector(ingress_writer, watcher(ingress, watcher::Config::default()));
@@ -415,8 +423,8 @@ async fn main() -> Result<()> {
             }),
             None => None,
         })
-        .owns(deployments, watcher::Config::default())
-        .owns(configmaps, watcher::Config::default())
+        .owns(deployments, watcher_config.clone())
+        .owns(configmaps, watcher_config.clone())
         .with_config(config)
         .shutdown_on_signal()
         .run(

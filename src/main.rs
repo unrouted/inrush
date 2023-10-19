@@ -28,11 +28,11 @@ use kube::{
     },
     Client, Resource,
 };
+use resolv_conf;
 use std::{collections::BTreeMap, sync::Arc};
 use thiserror::Error as AnotherError;
 use tokio::time::Duration;
 use tracing::*;
-use resolv_conf;
 
 mod crd;
 
@@ -386,13 +386,11 @@ async fn main() -> Result<()> {
 
     let cluster_domain = match std::env::var("INRUSH_SERVICE_DOMAIN") {
         Ok(cluster_domain) => Ok(cluster_domain),
-        Err(_) => {
-            match get_search_domain_from_resolv_conf() {
-                Ok(Some(cluster_domain)) => Ok(cluster_domain),
-                Ok(None) => Ok("svc.cluster.local".to_string()),
-                Err(e) => Err(e)
-            }
-        }
+        Err(_) => match get_search_domain_from_resolv_conf() {
+            Ok(Some(cluster_domain)) => Ok(cluster_domain),
+            Ok(None) => Ok("svc.cluster.local".to_string()),
+            Err(e) => Err(e),
+        },
     }?;
 
     let client = Client::try_default().await?;
@@ -400,6 +398,7 @@ async fn main() -> Result<()> {
     let inrushgateways = Api::<InrushGateway>::all(client.clone());
     let ingress = Api::<Ingress>::all(client.clone());
     let deployments = Api::<Deployment>::all(client.clone());
+    let configmaps = Api::<ConfigMap>::all(client.clone());
 
     // limit the controller to running a maximum of two concurrent reconciliations
     let config = Config::default().concurrency(2);
@@ -417,6 +416,7 @@ async fn main() -> Result<()> {
             None => None,
         })
         .owns(deployments, watcher::Config::default())
+        .owns(configmaps, watcher::Config::default())
         .with_config(config)
         .shutdown_on_signal()
         .run(

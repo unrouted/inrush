@@ -1,4 +1,4 @@
-FROM rustlang/rust:1-buster as build
+FROM rust:1-buster as build
 
 WORKDIR /usr/src/operator
 

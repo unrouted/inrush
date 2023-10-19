@@ -275,16 +275,21 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 namespace: ingress.meta().namespace.clone(),
                 name: Some(svc_name.clone()),
                 owner_references: Some(vec![owner_reference.clone()]),
-                labels: Some(BTreeMap::from([(
-                    "inrush.unrouted.uk/ingress".to_string(),
-                    name.clone(),
-                )])),
                 ..Default::default()
             };
 
+            let mut labels =
+                BTreeMap::from([("inrush.unrouted.uk/ingress".to_string(), name.clone())]);
+
             if let Some(template_metadata) = &template.metadata {
-                metadata.labels = template_metadata.labels.clone();
+                if let Some(template_labels) = &template_metadata.labels {
+                    for (k, v) in template_labels.iter() {
+                        labels.insert(k.clone(), v.clone());
+                    }
+                }
             }
+
+            metadata.labels = Some(labels);
 
             let mut spec = ServiceSpec {
                 selector: Some(BTreeMap::from([(

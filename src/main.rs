@@ -413,7 +413,10 @@ async fn main() -> Result<()> {
     let watcher_config = watcher::Config::default().labels("inrush.unrouted.uk/ingress");
 
     let (ingress_reader, ingress_writer) = store();
-    let rf = reflector(ingress_writer, watcher(ingress, watcher::Config::default()));
+    let rf = reflector(
+        ingress_writer,
+        watcher(ingress, watcher::Config::default()).default_backoff(),
+    );
     let ingress_stream = rf.applied_objects();
 
     Controller::new(inrushgateways, watcher::Config::default())

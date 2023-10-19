@@ -28,7 +28,7 @@ use kube::{
     },
     Client, Resource,
 };
-use resolv_conf;
+
 use std::error::Error;
 use std::fmt::Write;
 use std::{collections::BTreeMap, sync::Arc};
@@ -370,7 +370,7 @@ fn get_search_domain_from_resolv_conf() -> anyhow::Result<Option<String>> {
 
     if let Some(domains) = cfg.get_search() {
         for domain in domains {
-            if domain.starts_with(&"svc.") {
+            if domain.starts_with("svc.") {
                 return Ok(Some(domain.clone()));
             }
         }

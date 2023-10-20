@@ -225,7 +225,10 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                     ]),
                     containers: vec![Container {
                         name: "nginx".to_string(),
-                        image: Some("nginx:stable".to_string()),
+                        image: match &ingress.spec.image {
+                            Some(image) => Some(image.clone()),
+                            None => Some("nginx:stable".to_string()),
+                        },
                         volume_mounts: Some(vec![
                             VolumeMount {
                                 name: "config".to_string(),

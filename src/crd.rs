@@ -38,4 +38,5 @@ pub struct ServiceTemplate {
 )]
 pub struct InrushGatewaySpec {
     pub service_templates: Option<Vec<ServiceTemplate>>,
+    pub image: Option<String>,
 }

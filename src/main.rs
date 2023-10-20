@@ -96,6 +96,12 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
         ..Default::default()
     };
 
+    let mut labels = match &ingress.meta().labels {
+        Some(labels) => labels.clone(),
+        None => BTreeMap::new(),
+    };
+    labels.insert("inrush.unrouted.uk/ingress".to_string(), name.clone());
+
     let config_map_name = format!("{name}-config");
     let deployment_name = format!("{name}-nginx");
 
@@ -145,10 +151,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
             name: Some(config_map_name.clone()),
             namespace: ingress.meta().namespace.clone(),
             owner_references: Some(vec![owner_reference.clone()]),
-            labels: Some(BTreeMap::from([(
-                "inrush.unrouted.uk/ingress".to_string(),
-                name.clone(),
-            )])),
+            labels: Some(labels.clone()),
             ..Default::default()
         },
         data: Some(BTreeMap::from([("nginx.conf".to_string(), rendered)])),
@@ -174,10 +177,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
             name: Some(deployment_name),
             namespace: ingress.meta().namespace.clone(),
             owner_references: Some(vec![owner_reference.clone()]),
-            labels: Some(BTreeMap::from([(
-                "inrush.unrouted.uk/ingress".to_string(),
-                name.clone(),
-            )])),
+            labels: Some(labels.clone()),
             ..Default::default()
         },
         spec: Some(DeploymentSpec {
@@ -281,18 +281,17 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 ..Default::default()
             };
 
-            let mut labels =
-                BTreeMap::from([("inrush.unrouted.uk/ingress".to_string(), name.clone())]);
+            let mut service_labels = labels.clone();
 
             if let Some(template_metadata) = &template.metadata {
                 if let Some(template_labels) = &template_metadata.labels {
                     for (k, v) in template_labels.iter() {
-                        labels.insert(k.clone(), v.clone());
+                        service_labels.insert(k.clone(), v.clone());
                     }
                 }
             }
 
-            metadata.labels = Some(labels);
+            metadata.labels = Some(service_labels);
 
             let mut spec = ServiceSpec {
                 selector: Some(BTreeMap::from([(

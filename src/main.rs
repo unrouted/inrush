@@ -46,6 +46,7 @@ struct Location {
 
 struct InrushGatewayMetadata {
     locations: Vec<Location>,
+    server_names: Vec<String>,
 }
 
 #[derive(Template)]
@@ -106,6 +107,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
     let deployment_name = format!("{name}-nginx");
 
     let mut locations = vec![];
+    let mut server_names = vec![];
 
     for ingress in ctx.ingress.state() {
         if let Some(spec) = &ingress.spec {
@@ -118,8 +120,25 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 continue;
             }
 
+            if let Some(tls) = &spec.tls {
+                for row in tls {
+                    if let Some(hosts) = &row.hosts {
+                        for host in hosts {
+                            if !server_names.contains(host) {
+                                server_names.push(host.clone());
+                            }
+                        }
+                    }
+                }
+            }
+
             if let Some(rules) = &spec.rules {
                 for rule in rules {
+                    if let Some(host) = &rule.host {
+                        if !server_names.contains(host) {
+                            server_names.push(host.clone());
+                        }
+                    }
                     if let Some(http) = &rule.http {
                         for path in &http.paths {
                             if let Some(service) = &path.backend.service {
@@ -142,7 +161,10 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
     }
 
     let template = IngressTemplate {
-        metadata: &Arc::new(InrushGatewayMetadata { locations }),
+        metadata: &Arc::new(InrushGatewayMetadata {
+            locations,
+            server_names,
+        }),
     };
     let rendered = template.render()?;
 

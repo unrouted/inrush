@@ -26,6 +26,11 @@ http {
 
     include /etc/nginx/conf.d/*.conf;
 
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+    }
+
     server {
         listen 80;
         return 301 https://$host$request_uri;

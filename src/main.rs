@@ -239,7 +239,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                         name: "nginx".to_string(),
                         image: match &ingress.spec.image {
                             Some(image) => Some(image.clone()),
-                            None => Some("nginx:stable".to_string()),
+                            None => Some(ctx.image_name.clone()),
                         },
                         volume_mounts: Some(vec![
                             VolumeMount {
@@ -379,6 +379,7 @@ fn error_policy(
 // Data we want access to in error/reconcile calls
 struct Data {
     cluster_domain: String,
+    image_name: String,
     client: Client,
     ingress: Arc<Store<Ingress>>,
 }
@@ -415,6 +416,11 @@ async fn main() -> Result<()> {
             Err(e) => Err(e),
         },
     }?;
+
+    let image_name = match std::env::var("INRUSH_NGINX_IMAGE") {
+        Ok(image_name) => image_name,
+        Err(_) => "nginx:stable".to_string(),
+    };
 
     let client = Client::try_default().await?;
 
@@ -456,6 +462,7 @@ async fn main() -> Result<()> {
             error_policy,
             Arc::new(Data {
                 cluster_domain,
+                image_name,
                 client,
                 ingress: Arc::new(ingress_reader),
             }),

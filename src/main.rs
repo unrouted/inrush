@@ -32,11 +32,11 @@ use kube::{
 use std::error::Error;
 use std::fmt::Write;
 use std::{collections::BTreeMap, sync::Arc};
-use thiserror::Error as AnotherError;
 use tokio::time::Duration;
 use tracing::*;
 
 mod crd;
+mod error;
 
 struct Location {
     path: String,
@@ -53,12 +53,6 @@ struct InrushGatewayMetadata {
 #[template(path = "nginx.txt")]
 struct IngressTemplate<'a> {
     metadata: &'a Arc<InrushGatewayMetadata>,
-}
-
-#[derive(Debug, AnotherError)]
-enum ReconcileError {
-    #[error("Error: {0}")]
-    AnotherError(#[source] anyhow::Error),
 }
 
 async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Result<Action> {
@@ -366,17 +360,17 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
 async fn reconcile_wrapper(
     inrushgateway: Arc<InrushGateway>,
     ctx: Arc<Data>,
-) -> Result<Action, ReconcileError> {
+) -> Result<Action, error::Error> {
     match reconcile(inrushgateway, ctx).await {
         Ok(result) => Ok(result),
-        Err(e) => Err(ReconcileError::AnotherError(e)),
+        Err(e) => Err(e.into()),
     }
 }
 
 /// The controller triggers this on reconcile errors
 fn error_policy(
     _object: Arc<crd::InrushGateway>,
-    _error: &ReconcileError,
+    _error: &error::Error,
     _ctx: Arc<Data>,
 ) -> Action {
     Action::requeue(Duration::from_secs(1))

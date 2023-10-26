@@ -57,10 +57,6 @@ struct IngressTemplate<'a> {
 
 #[derive(Debug, AnotherError)]
 enum ReconcileError {
-    #[error("Failed to create ConfigMap: {0}")]
-    ConfigMapCreationFailed(#[source] kube::Error),
-    #[error("MissingObjectKey: {0}")]
-    MissingObjectKey(&'static str),
     #[error("Error: {0}")]
     AnotherError(#[source] anyhow::Error),
 }
@@ -77,17 +73,17 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
         .meta()
         .name
         .as_ref()
-        .ok_or_else(|| ReconcileError::MissingObjectKey(".metadata.name"))?;
+        .context("Missing object key .metadata.name")?;
     let namespace = ingress
         .meta()
         .namespace
         .as_ref()
-        .ok_or_else(|| ReconcileError::MissingObjectKey(".metadata.namespace"))?;
+        .context("Missing object key .metadata.namespace")?;
     let uid = ingress
         .meta()
         .uid
         .as_ref()
-        .ok_or_else(|| ReconcileError::MissingObjectKey(".spec"))?;
+        .context("Mising object key .spec")?;
 
     let owner_reference = OwnerReference {
         api_version: InrushGateway::api_version(&()).to_string(),
@@ -187,7 +183,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 .metadata
                 .name
                 .as_ref()
-                .ok_or_else(|| ReconcileError::MissingObjectKey(".metadata.name"))?,
+                .context("Missing object key .metadata.name")?,
             &PatchParams::apply("inrush.unrouted.uk"),
             &Patch::Apply(&config_map),
         )
@@ -283,12 +279,12 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 .metadata
                 .name
                 .as_ref()
-                .ok_or_else(|| ReconcileError::MissingObjectKey(".metadata.name"))?,
+                .context("Missing object key .metadata.name")?,
             &PatchParams::apply("inrush.unrouted.uk"),
             &Patch::Apply(&deployment),
         )
         .await
-        .map_err(ReconcileError::ConfigMapCreationFailed)?;
+        .context("Deployment update failed")?;
 
     info!("Deployment updated");
 

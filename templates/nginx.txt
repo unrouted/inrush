@@ -87,6 +87,8 @@ http {
 
         proxy_redirect                          off;
 
+        client_max_body_size 100M;
+
         {% for location in metadata.locations %}
         location {{ location.path }} {
             proxy_pass http://{{ location.domain }}:{{ location.port }};

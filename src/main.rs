@@ -190,6 +190,10 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
             namespace: ingress.meta().namespace.clone(),
             owner_references: Some(vec![owner_reference.clone()]),
             labels: Some(labels.clone()),
+            annotations: Some(BTreeMap::from([(
+                "configmap.reloader.stakater.com/reload".to_string(),
+                config_map_name.clone(),
+            )])),
             ..Default::default()
         },
         spec: Some(DeploymentSpec {

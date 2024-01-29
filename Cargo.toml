@@ -19,5 +19,5 @@ serde = { version = "1.0.193", features = ["derive"] }
 tokio-util = "0.7.10"
 askama = "0.12.1"
 schemars = "*"
-serde_yaml = "0.9.30"
+serde_yaml = "0.9.31"
 resolv-conf = "0.7.0"

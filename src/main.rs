@@ -231,7 +231,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                         Volume {
                             name: "config".to_string(),
                             config_map: Some(ConfigMapVolumeSource {
-                                name: Some(config_map_name),
+                                name: config_map_name,
                                 ..Default::default()
                             }),
                             ..Default::default()

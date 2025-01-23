@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct ServiceTemplateMeta {
     pub labels: Option<BTreeMap<String, String>>,
+    pub annotations: Option<BTreeMap<String, String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, JsonSchema)]

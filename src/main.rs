@@ -314,6 +314,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
             }
 
             metadata.labels = Some(service_labels);
+            metadata.annotations = template.metadata.as_ref().unwrap().annotations.clone();
 
             let mut spec = ServiceSpec {
                 selector: Some(BTreeMap::from([(

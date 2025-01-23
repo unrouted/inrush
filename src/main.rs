@@ -203,7 +203,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
             ..Default::default()
         },
         spec: Some(DeploymentSpec {
-            replicas: Some(3),
+            replicas: Some(2),
             strategy: Some(DeploymentStrategy {
                 type_: Some("RollingUpdate".to_string()),
                 rolling_update: Some(RollingUpdateDeployment {

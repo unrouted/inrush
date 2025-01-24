@@ -28,6 +28,11 @@ jobs:
     environment: default
     needs: [test]
 
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -44,4 +49,4 @@ jobs:
           conventional-changelog-conventionalcommits
           @semantic-release/exec
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

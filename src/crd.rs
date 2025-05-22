@@ -17,6 +17,7 @@ pub struct ServiceTemplateSpec {
     pub load_balancer_class: Option<String>,
     pub external_traffic_policy: Option<String>,
     pub internal_traffic_policy: Option<String>,
+    pub session_affinity: Option<String>,
     #[serde(rename = "type")]
     pub type_: Option<String>,
 }

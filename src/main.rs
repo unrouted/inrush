@@ -345,6 +345,7 @@ async fn reconcile(ingress: Arc<InrushGateway>, ctx: Arc<Data>) -> anyhow::Resul
                 spec.load_balancer_class = template_spec.load_balancer_class.clone();
                 spec.internal_traffic_policy = template_spec.internal_traffic_policy.clone();
                 spec.external_traffic_policy = template_spec.external_traffic_policy.clone();
+                spec.session_affinity = template_spec.session_affinity.clone();
             }
 
             let service = Service {

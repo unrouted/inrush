@@ -88,7 +88,7 @@ http {
 
         proxy_redirect                          off;
 
-        client_max_body_size 100M;
+        client_max_body_size 1000M;
 
         {% for location in metadata.locations %}
         location {{ location.path }} {

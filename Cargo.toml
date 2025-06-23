@@ -17,7 +17,7 @@ thiserror = "2.0.12"
 anyhow = "1.0.98"
 serde = { version = "1.0.219", features = ["derive"] }
 tokio-util = "0.7.13"
-askama = "0.12.1"
+askama = "0.14.0"
 schemars = "*"
 serde_yaml = "0.9.34"
 resolv-conf = "0.7.0"
